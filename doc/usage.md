@@ -62,3 +62,51 @@ def func(a, b):
 ```
 
 #### 3. [cost_list](test/multiprocplus_test2_cost.py)
+
+```python
+import time
+from multiprocplus import multiprocess_for, MultiprocessRunner
+
+
+def func(i, a, b):
+    time.sleep((i+1)/2)
+    return a * b
+
+
+if __name__ == "__main__":
+    """
+    """
+    N = 5
+    A, B = list(range(N)), list(range(N))
+    cost = [1, 2, 3, 4, 5]
+
+    # => run in 3 processes
+    tic = time.time()
+    C = multiprocess_for(func, [(i, a, b) for i, (a, b) in enumerate(zip(A, B))],
+                         num_process=3, debug_info=2)
+    print("result:", sum(C), "cost time:", time.time() - tic)
+
+    tic = time.time()
+    C = multiprocess_for(func, [(i, a, b) for i, (a, b) in enumerate(zip(A, B))],
+                         cost_list=cost, num_process=3, debug_info=2)
+    print("result:", sum(C), "cost time:", time.time() - tic)
+
+    # => run in single process
+    tic = time.time()
+    C = [func(i, a, b) for i, (a, b) in enumerate(zip(A, B))]
+    print("result:", sum(C), "cost time:", time.time() - tic)
+```
+
+```shell
+[MultiprocessRunner] start run async in 3 processes for 5 tasks
+result: 30 cost time: 3.7509748935699463
+assigned task of each processes: [[0, 1, 2], [3], [4]]
+[MultiprocessRunner] start run async in 3 processes for 3 groups (5 tasks)
+[MultiprocessRunner:(1)] finished all 1 tasks (2.016202688217163s) --------------------------
+[MultiprocessRunner:(0)] finished all 3 tasks (3.026254653930664s) --------------------------
+[MultiprocessRunner:(2)] finished all 1 tasks (2.513298511505127s) --------------------------
+result: 30 cost time: 3.2153007984161377
+result: 30 cost time: 7.5298871994018555
+
+Process finished with exit code 0
+```

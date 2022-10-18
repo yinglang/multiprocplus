@@ -1,65 +1,39 @@
+import time
 from multiprocplus import multiprocess_for, MultiprocessRunner
+import numpy as np
 
 
-def example_of_num_process(A, B):
-    # => run in single process
-    print("run in single process")
-    C = multiprocess_for(func, [(a, b) for a, b in zip(A, B)], num_process=0.0, debug_info=True)  # 0.0 * cpu_count()
-    C = multiprocess_for(func, [(a, b) for a, b in zip(A, B)], num_process=0, debug_info=True)
-    C = multiprocess_for(func, [(a, b) for a, b in zip(A, B)], num_process=1, debug_info=True)
-
-    # => run in all processes
-    print("run in all processes")
-    C = multiprocess_for(func, [(a, b) for a, b in zip(A, B)], debug_info=True)
-    C = multiprocess_for(func, [(a, b) for a, b in zip(A, B)], num_process=1.0, debug_info=True)   # 1.0 * cpu_count()
-    C = multiprocess_for(func, [(a, b) for a, b in zip(A, B)], num_process=-1, debug_info=True)
-
-    # => run in half of all processes
-    print("run in half of all processes")
-    C = multiprocess_for(func, [(a, b) for a, b in zip(A, B)], num_process=0.5, debug_info=True)   # 0.5 * cpu_count()
-
-    # => run in 2 processes
-    print("run in 2 processes")
-    C = multiprocess_for(func, [(a, b) for a, b in zip(A, B)], num_process=2, debug_info=True)
+"""
+# the cost used to group is helpful while share data is large
+"""
 
 
-def example_of_shared_data(A, B):
-    # => run in single process
-    C = [func(a, b) for a, b in zip(A, B)]
-    print(sum(C))
-    # => run in 3 processes
-    C = multiprocess_for(func, [(a, b) for a, b in zip(A, B)], num_process=3)
-    C = multiprocess_for(func1, [(idx, a) for idx, a in enumerate(A)], share_data_list=[B], num_process=3)
-    print(sum(C))
-
-
-def func1(idx, a, B):
-    return a * B[idx]
-
-
-def func(a, b):
-    return a * b
+def func(i, a, b, c, S):
+    time.sleep(c)
+    return a * b + S
 
 
 if __name__ == "__main__":
     """
-        - The definition of function passed to new process must be out of 'if __name__ == "__main__"' (global function or member function of global class);
-        - Code/Function that you do not want to run in new process must be written/called under 'if __name__ == "__main__"' of entry script, 
-          or it will run/called in new process.
-        - Following last note, multiprocess_run must be called in a function called under 'if __name__ == "__main__"' of entry script. 
-          Otherwise, new processes will be generated recursively
     """
-    N = 100
+    N = 20
     A, B = list(range(N)), list(range(N))
+    S = np.random.randn(1000, 1000)
+    cost = np.random.uniform(0, 1, (N-5,)).tolist() + [5, 3, 2, 2, 2]
+
+    # => run in 10 processes
+    tic = time.time()
+    C = multiprocess_for(func, [(i, a, b, c) for i, (a, b, c) in enumerate(zip(A, B, cost))], share_data_list=[S],
+                         num_process=4, debug_info=2)
+    print("result:", np.sum(C), "cost time:", time.time() - tic)
+
+    tic = time.time()
+    C = multiprocess_for(func, [(i, a, b, c) for i, (a, b, c) in enumerate(zip(A, B, cost))], share_data_list=[S],
+                         cost_list=cost, num_process=4, debug_info=2)
+    print("result:", np.sum(C), "cost time:", time.time() - tic)
 
     # => run in single process
-    C = [func(a, b) for a, b in zip(A, B)]
-    print(sum(C))
-    # => run in 3 processes
-    C = multiprocess_for(func, [(a, b) for a, b in zip(A, B)], num_process=3)
-    print(sum(C))
+    tic = time.time()
+    C = [func(i, a, b, c, S) for i, (a, b, c) in enumerate(zip(A, B, cost))]
+    print("result:", np.sum(C), "cost time:", time.time() - tic)
 
-    print("example_of_num_process")
-    example_of_num_process(A, B)
-    print("example_of_shared_data")
-    example_of_shared_data(A, B)
