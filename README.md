@@ -1,6 +1,9 @@
 # multiprocplus
 multiprocessing plus, a drop-in and easy-use enhancement for multiprcocessing
 
+- easy to replace "for loop".
+- assign task group with given an estimated cost.
+
 # install
 
 ```shell
@@ -33,7 +36,7 @@ if __name__ == "__main__":
     print(sum(C))
 ```
 
-For more usage examples, see []()
+For more usage examples, see [doc/usage.md](doc/usage.md)
 
 
 # Notice:
@@ -46,3 +49,11 @@ For more usage examples, see []()
   Otherwise, new processes will be generated recursively
 
 For error usage examples, to see [doc/normal_issue.md](doc/normal_issue.md) or [test/error_usage](test/error_usage)
+
+# Basic && Implementation
+
+## Manager & Pool in multiprocessing
+If you have known the usage of module multiprocessing in python, you can skip this section.
+
+## Implementation
+If you just want to use multiprocplus in you project and do not interest the implementation, you can skip this section.

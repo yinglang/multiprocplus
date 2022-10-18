@@ -55,9 +55,10 @@ class MyTest(object):
         # print(len(res), res[1])
 
         res = multiprocess_for(self.func2, [(i, [dataA[i]]) for i in range(5)], share_data_list=[dataB],
-                               cost_list=[1, 2, 3, 4, 5],
-                               num_process=3)
-        print(len(res), res[1])
+                               cost_list=[1, 2, 3, 4, 5],  # estimated cost time of each processes
+                               num_process=3, debug_info=2, cost_rate_per_process=1.0)
+        print(len(res))
+        print(res[1])
         return res
 
     def mytest2(self, res):

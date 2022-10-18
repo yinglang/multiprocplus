@@ -2,6 +2,8 @@
 
 ## Error code example
 
+The no-bugs example is in [test/multiprocplus_test.py](test/multiprocplus_test.py)
+
 #### error #1: create multiprocess out 'if __name__ == "__main__"' of entry script
 - Code/Function that you do not want to run in new process must be written/called under 'if __name__ == "__main__"' of entry script, 
   or it will run/called in new process.
