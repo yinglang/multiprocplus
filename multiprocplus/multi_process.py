@@ -2,6 +2,8 @@ import multiprocessing
 import time
 import os
 
+__all__ = ["MultiprocessRunner", "MultiprocessFor", "multiprocess_for", "mp_for"]
+
 
 class Task(object):
     def __init__(self, idx, func, args, cost):
@@ -38,16 +40,19 @@ class MultiprocessRunner(object):
         so we should only pass process-specified args to each process.
      3)
     """
-    def __init__(self, num_process=multiprocessing.cpu_count()):
+
+    def __init__(self, num_process=multiprocessing.cpu_count(), debug_info=False):
         if num_process < 0:
             num_process = multiprocessing.cpu_count()
         self.num_process = num_process
         # self.pool = multiprocessing.Pool(self.num_process)
+        self.debug_info = debug_info
 
     def __call__(self, func, args_list, share_data_list, cost_list=None):
         self.func = func
         if self.num_process == 1 or self.num_process == 0:
-            print(f"[MultiprocessRunner] start run in single process for {len(args_list)} tasks")
+            if self.debug_info:
+                print(f"[MultiprocessRunner] start run in single process for {len(args_list)} tasks")
             results = []
             for i, args in enumerate(args_list):
                 args = args + tuple(share_data_list)
@@ -58,13 +63,14 @@ class MultiprocessRunner(object):
             return self.run_with_cost(func, args_list, share_data_list, cost_list)
         return self.run(func, args_list, share_data_list)
 
-    def run(self, func, args_list, share_data_list):
+    def run(self, func, args_list, share_data_list=[]):
         num_process = min(self.num_process, len(args_list))
         # will not delete shared memory after return compare to with multiprocessing.Manager() as manager
         manager = multiprocessing.Manager()
         pool = multiprocessing.Pool(num_process)
 
-        print(f"[MultiprocessRunner] start run async in {num_process} processes for {len(args_list)} tasks")
+        if self.debug_info:
+            print(f"[MultiprocessRunner] start run async in {num_process} processes for {len(args_list)} tasks")
         results = manager.dict()
         share_data_list = self.to_shared_memory_var(manager, share_data_list)
         args_list = [self.to_shared_memory_var(manager, args) for i, args in enumerate(args_list)]
@@ -77,7 +83,8 @@ class MultiprocessRunner(object):
         pool.join()
         return self.dict_to_list(results)
 
-    def run_with_cost(self, func, args_list, share_data_list, cost_list):
+    def run_with_cost(self, func, args_list, share_data_list=[], cost_list=[]):
+        assert len(args_list) == len(cost_list), f"{len(args_list)} vs {len(cost_list)}"
         tasks_group = self.assign_task_group(func, args_list, cost_list)
         # print(tasks_group)
 
@@ -86,8 +93,9 @@ class MultiprocessRunner(object):
         manager = multiprocessing.Manager()
         pool = multiprocessing.Pool(num_process)
 
-        print(f"[MultiprocessRunner] start run async in {num_process} processes "
-              f"for {len(tasks_group)} groups ({len(args_list)} tasks)")
+        if self.debug_info:
+            print(f"[MultiprocessRunner] start run async in {num_process} processes "
+                  f"for {len(tasks_group)} groups ({len(args_list)} tasks)")
         # the manger var must keep ref during new process running
         results = manager.dict()
         share_data_list = self.to_shared_memory_var(manager, share_data_list)
@@ -107,14 +115,20 @@ class MultiprocessRunner(object):
                 tic2 = time.time()
                 self.func_wrapper(task_id, results, *multi_args[i], *share_data_list)
                 # print(f"[MultiprocessRunner:({gid})] complete {task_id}-th task ({i + 1}/{len(tasks_id)}, {time.time()-tic2}s).")
-            print(f"[MultiprocessRunner:({gid})] finished all {len(tasks_id)} tasks "
-                  f"({time.time() - tic}s) --------------------------")
+            if self.debug_info:
+                print(f"[MultiprocessRunner:({gid})] finished all {len(tasks_id)} tasks "
+                      f"({time.time() - tic}s) --------------------------")
         except BaseException as b:
             print(f"[MultiprocessRunner:({gid})] {b}")
+            raise b
 
     def func_wrapper(self, i, results, *args, **kwargs):
-        # print(results)
-        results[i] = self.func(*args, **kwargs)
+        try:
+            # print(results)
+            results[i] = self.func(*args, **kwargs)
+        except BaseException as b:
+            print(f"[MultiprocessRunner:({i})] {b}")
+            raise b
 
     def assign_task_group(self, func, args_list, cost_list):
         tasks = [Task(i, func, args, cost) for i, (args, cost) in enumerate(zip(args_list, cost_list))]
@@ -122,7 +136,7 @@ class MultiprocessRunner(object):
         std_cost = tasks[0].cost * 3
         tasks_gorup = []
         cur_cost, cur_group = 0, []
-        for i in range(len(tasks)-1, -1, -1):
+        for i in range(len(tasks) - 1, -1, -1):
             cur_cost += tasks[i].cost
             if cur_cost <= std_cost:
                 cur_group.append(tasks[i])
@@ -159,80 +173,17 @@ class MultiprocessRunner(object):
         return tuple(m_share_data_list)
 
 
-def multiprocess_run(func, args_list, share_data_list, cost_list=None, num_process=multiprocessing.cpu_count()):
+def multiprocess_for(func, args_list, share_data_list=[], cost_list=None, num_process=multiprocessing.cpu_count()):
     """
-    to replace:
+    multiprocess_for can be utilized to replace for loop:
         results = []
-        for i, (args, kwargs) in enumerate(zip(args_list, kwargs_list)):
-            results.append(func(args, args_list, results))
+        for args in args_list:
+            args = args + (share_data_list,)
+            results.append(func(*args))
         return results
     """
     return MultiprocessRunner(num_process)(func, args_list, share_data_list, cost_list)
 
 
-class MyTest(object):
-    def func(self, idx, dataA, dataB):
-        print(f"start {idx}")
-        da = dataA[idx]
-        sum_res = {}
-        for k, v in dataB.items():
-            sum_res[k] = da + v
-        import time
-        time.sleep(3)
-        print(f"finish {idx}")
-        return sum_res
-
-    def func2(self, idx, da, dataB):
-        print(f"start {idx}")
-        sum_res = {}
-        da = da[0]
-        for k, v in dataB.items():
-            sum_res[k] = da + v
-        import time
-        time.sleep((idx+1)*2)
-        print(f"finish {idx}")
-        return sum_res
-        # return idx
-
-    def mytest1(self):
-        """
-        the shared data can be list or dict, even numpy data inside them.
-        """
-        import numpy as np
-        n = 5
-        dataA = [np.arange(n), np.arange(n)+5, np.arange(n)+10, np.arange(n)+15, np.arange(n)+20]  # data
-        dataB = {"a": np.arange(n), "b": 2, "c": 3}
-
-        # # for a, b in zip(dataA, dataB):
-        # #     func(a, b)
-        # res = MultiprocessRunner(num_process=3)(self.func, [(i,) for i in range(5)], share_data_list=[dataA, dataB])
-        # print(len(res), res[1])
-        # res = MultiprocessRunner(num_process=0)(self.func, [(i,) for i in range(5)], share_data_list=[dataA, dataB])
-        # print(len(res), res[1])
-        # # print(res)
-        # # print(res[0])
-        # # res = multiprocess_run(self.func, [(i,) for i in range(5)], share_data_list=[dataA, dataB], num_process=3)
-        # # print(res[1])
-        #
-        # res = multiprocess_run(self.func2, [(i, [dataA[i]]) for i in range(5)], share_data_list=[dataB],
-        #                        num_process=3)
-        # print(len(res), res[1])
-
-        res = multiprocess_run(self.func2, [(i, [dataA[i]]) for i in range(5)], share_data_list=[dataB],
-                               cost_list=[1, 2, 3, 4, 5],
-                               num_process=3)
-        print(len(res), res[1])
-        return res
-
-    def mytest2(self, res):
-        """
-            the returned result can be passed cross function.
-        """
-        print(res[0])
-
-
-if __name__ == "__main__":
-    # res = mytest1()
-    # mytest2(res)
-    m = MyTest()
-    m.mytest2(m.mytest1())
+MultiprocessFor = MultiprocessRunner
+mp_for = multiprocess_for
