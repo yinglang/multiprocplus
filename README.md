@@ -38,7 +38,6 @@ if __name__ == "__main__":
 
 For more usage examples, see [doc/usage.md](doc/usage.md)
 
-
 # Notice:
 
 >1. The definition of function passed to new process must be out of 'if __name__ == "__main__"' (global function or member function of global class), 
@@ -54,6 +53,7 @@ For error usage examples, to see [doc/normal_issue.md](doc/normal_issue.md) or [
 
 ## Manager & Pool in multiprocessing
 If you have known the usage of module multiprocessing in python, you can skip this section.
+see [CSDN](https://blog.csdn.net/yinglang19941010/article/details/127390585)
 
 ## Implementation
 If you just want to use multiprocplus in you project and do not interest the implementation, you can skip this section.
