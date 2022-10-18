@@ -17,7 +17,7 @@ if __name__ == "__main__":
     print(sum(C))
     # => run in multiprocess
     # error usage 1:
-    C = multiprocess_for(func1, [(a, b) for a, b in zip(A, B)], num_process=3)  # no error report
+    C = multiprocess_for(func1, [(a, b) for a, b in zip(A, B)], num_process=3)  # error but no error info report
     # error usage 2:
     C = multiprocess_for(func, [(a, b) for a, b in zip(A, B)], num_process=3)
     print(sum(C))

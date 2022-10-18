@@ -38,11 +38,11 @@ For more usage examples, see []()
 
 # Notice:
 
-- The definition of function passed to new process must be out of 'if __name__ == "__main__"' (global function or member function of global class), 
+>1. The definition of function passed to new process must be out of 'if __name__ == "__main__"' (global function or member function of global class), 
   and can not be lambda function;
-- Code/Function that you do not want to run in new process must be written/called under 'if __name__ == "__main__"' of entry script, 
+>2. Code/Function that you do not want to run in new process must be written/called under 'if __name__ == "__main__"' of entry script, 
   or it will run/called in new process.
-- Following last note, multiprocess_run must be called in a function called under 'if __name__ == "__main__"' of entry script. 
+>3. Following last note, multiprocess_run must be called in a function called under 'if __name__ == "__main__"' of entry script. 
   Otherwise, new processes will be generated recursively
 
-For error usage examples, to see [test/error_usage](test/error_usage)
+For error usage examples, to see [doc/normal_issue.md](doc/normal_issue.md) or [test/error_usage](test/error_usage)
