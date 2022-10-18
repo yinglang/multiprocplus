@@ -28,8 +28,8 @@ setuptools.setup(
     # package_data={"multiprocessingplus": ["src/*.py"]},
     py_modules=['multi_process'],
     # meta data
-    classifiers=[
-        'Development Status :: 0.1 - Beta',
+    classifiers=[  # https://pypi.org/classifiers/
+        'Development Status :: 4 - Beta ',
         'Environment :: Console',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
@@ -42,7 +42,7 @@ setuptools.setup(
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Topic :: Utilities',
-        'Topic :: Software Development :: Multi Process',
+        'Topic :: Software Development :: Libraries :: Python Modules'
     ],
     # dependency
     install_requires=[
