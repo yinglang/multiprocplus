@@ -11,7 +11,8 @@ multiprocessing plus, a drop-in and easy-use enhancement for multiprcocessing
 git clone https://github.com/yinglang/multiprocplus
 cd multiprocplus
 python setup.py install
-# install method 2: from pip (TODO)
+# install method 2: from pip
+pip install multiprocplus
 ```
 
 # Usage
