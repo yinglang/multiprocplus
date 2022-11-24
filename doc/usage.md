@@ -110,3 +110,33 @@ result: 30 cost time: 7.5298871994018555
 
 Process finished with exit code 0
 ```
+
+### AsyncCaller
+
+```shell
+import multiprocessing
+from multiprocplus import AsyncCaller
+
+def produce_food():
+    for i in range(5):
+        time.sleep(1)
+        pid = multiprocessing.process.current_process().pid
+        print(f"produce food in {i, pid}")
+        yield i, pid
+
+def eat_food(i, pid):
+    print(f"eat food from {i, pid}")
+    time.sleep(1)
+    
+# run in same process
+for i, pid in produce_food():
+    print(i, pid)
+    eat_food(i, pid)
+
+# run in async process
+eat_food = AsyncCaller(eat_food)
+for i, pid in produce_food():
+    print(i, pid)
+    eat_food(i, pid)
+eat_food.join()
+```
