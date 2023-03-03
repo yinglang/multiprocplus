@@ -104,6 +104,8 @@ class MultiprocessRunner(object):
         self.cost_rate_per_process = cost_rate_per_process
 
     def __call__(self, func, args_list, share_data_list, cost_list=None):
+        if self.debug_info > 0:
+            tic = time.time()
         self.func = func
         if self.num_process == 1 or self.num_process == 0:
             if self.debug_info > 0:
@@ -113,10 +115,14 @@ class MultiprocessRunner(object):
                 args = args + tuple(share_data_list)
                 results.append(func(*args))
             return results
-
-        if cost_list is not None:
-            return self.run_with_cost(func, args_list, share_data_list, cost_list)
-        return self.run(func, args_list, share_data_list)
+        else:
+            if cost_list is not None:
+                results = self.run_with_cost(func, args_list, share_data_list, cost_list)
+            else:
+                results = self.run(func, args_list, share_data_list)
+        if self.debug_info > 0:
+            print(f"[MultiprocessRunner] finished all tasks cost {time.time()-tic}s")
+        return results
 
     def run(self, func, args_list, share_data_list=[]):
         num_process = min(self.num_process, len(args_list))
