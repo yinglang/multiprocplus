@@ -35,6 +35,7 @@ if __name__ == "__main__":
     # only allow to be called under 'if __name__ == "__main__"' of entry script
     C = multiprocess_for(func, [(a, b) for a, b in zip(A, B)], num_process=3)
     print(sum(C))
+    
     # run 10 samples as a gorup for each sub-process
     cost_list = [1] * len(A)
     cost_list[0] = 10                             # 10 samples
