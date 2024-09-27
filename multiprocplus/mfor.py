@@ -19,9 +19,13 @@ class MapFunctionWrapper(object):
 
 
 class MultiProcessMap(object):
-    def __init__(self, num_process=multiprocessing.cpu_count()):
+    def __init__(self, num_process=multiprocessing.cpu_count(), debug_info=0):
         self.num_process = self.get_num_process(num_process)
-        self.pool = multiprocessing.Pool(self.num_process)
+        if self.num_process > 0:
+            self.pool = multiprocessing.Pool(self.num_process)
+        else:
+            self.pool = None
+        self.debug_info = debug_info
 
     def get_num_process(self, num_process):
         if isinstance(num_process, int):
@@ -36,6 +40,14 @@ class MultiProcessMap(object):
         return min(num_process, multiprocessing.cpu_count())
 
     def __call__(self, func, args_list, with_tqdm=False):
+        if self.num_process == 1 or self.num_process == 0:
+            if self.debug_info > 0:
+                print(f"[MultiprocessRunner] start run in single process for {len(args_list)} tasks")
+            results = []
+            for i, args in enumerate(args_list):
+                results.append(func(*args))
+            return results
+
         func = MapFunctionWrapper(func)
         args_list = [tuple([i] + list(args)) for i, args in enumerate(args_list)]
         map_iter = self.pool.imap_unordered(func, args_list)
@@ -49,6 +61,6 @@ class MultiProcessMap(object):
         return results
 
 
-def mfor(func, args_list, num_process, with_tqdm=False):
-    mapper = MultiProcessMap(num_process)
+def mfor(func, args_list, num_process, with_tqdm=False, debug_info=0):
+    mapper = MultiProcessMap(num_process, debug_info)
     return mapper(func, args_list, with_tqdm)

@@ -12,7 +12,7 @@ def main():
     C = [func(a, b) for a, b in zip(A, B)]
     print(sum(C))
     # => run in 3 processes
-    C = mfor(func, [(a, b) for a, b in zip(A, B)], num_process=3)
+    C = mfor(func, [(a, b) for a, b in zip(A, B)], num_process=0)
     print(sum(C))
 
     import numpy as np
