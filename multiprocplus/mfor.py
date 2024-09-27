@@ -1,6 +1,7 @@
 import multiprocessing
 import time
 import traceback
+import sys
 
 
 class MapFunctionWrapper(object):
