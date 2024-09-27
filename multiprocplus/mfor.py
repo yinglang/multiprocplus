@@ -39,6 +39,7 @@ class MultiProcessMap(object):
         args_list = [tuple([i] + list(args)) for i, args in enumerate(args_list)]
         map_iter = self.pool.imap_unordered(func, args_list)
         if with_tqdm:
+            from tqdm import tqdm
             map_iter = tqdm(map_iter, total=len(args_list))
 
         results = [None] * len(args_list)
