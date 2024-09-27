@@ -8,6 +8,8 @@ multiprocessing plus, a drop-in and easy-use enhancement for multiprcocessing
 
 ```shell
 # install method 1: from source code
+pip install git+https://github.com/yinglang/multiprocplus.git
+## or 
 git clone https://github.com/yinglang/multiprocplus
 cd multiprocplus
 python setup.py install
