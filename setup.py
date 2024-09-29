@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="multiprocplus",
-    version="0.3.4",
+    version="0.3.5",
     author="hui",
     author_email="y19941010@126.com",
     description="a drop-in and easy-use enhancement for multiprcocessing",
