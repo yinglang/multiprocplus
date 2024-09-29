@@ -27,6 +27,11 @@ class MultiProcessMap(object):
             self.pool = None
         self.debug_info = debug_info
 
+    def stop(self):
+        if self.pool:
+            # self.pool.close()  # not accept new task
+            self.pool.terminate()  # force stop
+
     def get_num_process(self, num_process):
         if isinstance(num_process, int):
             if num_process < 0:
@@ -44,7 +49,10 @@ class MultiProcessMap(object):
             if self.debug_info > 0:
                 print(f"[MultiprocessRunner] start run in single process for {len(args_list)} tasks")
             results = []
-            for i, args in enumerate(args_list):
+            if with_tqdm:
+                from tqdm import tqdm
+                arg_list = tqdm(args_list)
+            for i, args in enumerate(tqdm(args_list)):
                 results.append(func(*args))
             return results
 
@@ -63,4 +71,9 @@ class MultiProcessMap(object):
 
 def mfor(func, args_list, num_process, with_tqdm=False, debug_info=0):
     mapper = MultiProcessMap(num_process, debug_info)
-    return mapper(func, args_list, with_tqdm)
+    try:
+        results = mapper(func, args_list, with_tqdm)
+    except KeyInterruptError as e:
+        mapper.stop()
+        raise e
+    return results
