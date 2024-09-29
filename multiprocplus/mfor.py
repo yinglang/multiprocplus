@@ -73,7 +73,7 @@ def mfor(func, args_list, num_process, with_tqdm=False, debug_info=0):
     mapper = MultiProcessMap(num_process, debug_info)
     try:
         results = mapper(func, args_list, with_tqdm)
-    except KeyInterruptError as e:
+    except KeyboardInterrupt as e:
         mapper.stop()
         raise e
     return results
